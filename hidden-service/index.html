@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hidden Service Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4ade80;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧅 Private Tor Hidden Service</h1>
+        <div class="success">✓ Successfully accessed hidden service via Tor!</div>
+        <div class="info">
+            <h2>Information</h2>
+            <p><strong>Service Type:</strong> Hidden Service (.onion)</p>
+            <p><strong>Network:</strong> Private Tor Network</p>
+            <p><strong>Protocol:</strong> HTTP over Tor</p>
+        </div>
+        <div class="info">
+            <h2>About This Demo</h2>
+            <p>You are accessing this page through a private Tor network. This hidden service is only accessible via the .onion address within the private Tor network.</p>
+            <p>All traffic is routed through multiple relay nodes, providing anonymity and privacy.</p>
+        </div>
+    </div>
+</body>
+</html>
+

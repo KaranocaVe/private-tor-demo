@@ -1,0 +1,202 @@
+version: '3.8'
+
+services:
+  # Directory Authority Server
+  dirauth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tor-dirauth
+    hostname: dirauth
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - ./dirauth/torrc:/etc/tor/torrc:ro
+      - ./dirauth/start.sh:/start.sh:ro
+      - dirauth-data:/var/lib/tor
+    command: ["/bin/bash", "/start.sh"]
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "7000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Relay Node 1
+  relay1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tor-relay1
+    hostname: relay1
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.11
+    volumes:
+      - ./relay1/torrc:/etc/tor/torrc.template:ro
+      - relay1-data:/var/lib/tor
+      - dirauth-data:/var/lib/tor-dirauth:ro
+    depends_on:
+      dirauth:
+        condition: service_healthy
+    command: >
+      /bin/bash -c "
+      sleep 5 &&
+      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
+      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
+      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
+      sudo -u debian-tor tor -f /etc/tor/torrc
+      "
+
+  # Relay Node 2
+  relay2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tor-relay2
+    hostname: relay2
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.12
+    volumes:
+      - ./relay2/torrc:/etc/tor/torrc.template:ro
+      - relay2-data:/var/lib/tor
+      - dirauth-data:/var/lib/tor-dirauth:ro
+    depends_on:
+      dirauth:
+        condition: service_healthy
+    command: >
+      /bin/bash -c "
+      sleep 5 &&
+      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
+      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
+      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
+      sudo -u debian-tor tor -f /etc/tor/torrc
+      "
+
+  # Exit Node
+  exit1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tor-exit1
+    hostname: exit1
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.13
+    volumes:
+      - ./exit/torrc:/etc/tor/torrc.template:ro
+      - exit-data:/var/lib/tor
+      - dirauth-data:/var/lib/tor-dirauth:ro
+    depends_on:
+      dirauth:
+        condition: service_healthy
+    command: >
+      /bin/bash -c "
+      sleep 5 &&
+      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
+      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
+      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
+      sudo -u debian-tor tor -f /etc/tor/torrc
+      "
+
+  # Hidden Service Node
+  hidden-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tor-hidden-service
+    hostname: hiddenservice
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.14
+    volumes:
+      - ./hidden-service/torrc:/etc/tor/torrc.template:ro
+      - ./hidden-service/start.sh:/start.sh:ro
+      - ./hidden-service/index.html:/var/www/index.html:ro
+      - hidden-service-data:/var/lib/tor
+      - dirauth-data:/var/lib/tor-dirauth:ro
+      - shared-data:/shared
+    depends_on:
+      dirauth:
+        condition: service_healthy
+    command: >
+      /bin/bash -c "
+      sleep 5 &&
+      mkdir -p /shared/hidden_service &&
+      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
+      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
+      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
+      /bin/bash /start.sh &
+      sleep 20 &&
+      while [ ! -f /var/lib/tor/hidden_service/hostname ]; do sleep 2; done &&
+      cp /var/lib/tor/hidden_service/hostname /shared/hidden_service/hostname &&
+      wait
+      "
+
+  # HTTP Test Server
+  http-server:
+    build:
+      context: ./http-server
+      dockerfile: Dockerfile
+    container_name: http-server
+    hostname: http-server
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.20
+    ports:
+      - "8888:80"
+
+  # Tor Client
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tor-client
+    hostname: torclient
+    networks:
+      tornet:
+        ipv4_address: 172.20.0.15
+    volumes:
+      - ./client/torrc:/etc/tor/torrc.template:ro
+      - ./client/test.sh:/test.sh:ro
+      - client-data:/var/lib/tor
+      - dirauth-data:/var/lib/tor-dirauth:ro
+      - shared-data:/shared:ro
+    depends_on:
+      - dirauth
+      - relay1
+      - relay2
+      - exit1
+      - hidden-service
+      - http-server
+    command: >
+      /bin/bash -c "
+      sleep 10 &&
+      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
+      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
+      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
+      sudo -u debian-tor tor -f /etc/tor/torrc &
+      sleep 30 &&
+      /bin/bash /test.sh &&
+      tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+
+networks:
+  tornet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  dirauth-data:
+  relay1-data:
+  relay2-data:
+  exit-data:
+  hidden-service-data:
+  client-data:
+  shared-data:
+

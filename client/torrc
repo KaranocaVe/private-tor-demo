@@ -1,0 +1,22 @@
+# Client Configuration
+Nickname torclient
+DataDirectory /var/lib/tor
+RunAsDaemon 0
+Log notice stdout
+
+# SOCKS proxy configuration
+SocksPort 0.0.0.0:9050
+
+# Disable public directory servers
+UseBridges 0
+
+# Directory authority
+DirAuthority dirauth orport=7000 no-v2 v3ident=__DIRAUTH_V3IDENT__ 172.20.0.10:7001 __DIRAUTH_FINGERPRINT__
+
+# Speed up private network
+TestingTorNetwork 1
+AssumeReachable 1
+V3AuthVotingInterval 5 minutes
+V3AuthVoteDelay 20 seconds
+V3AuthDistDelay 20 seconds
+

@@ -1,0 +1,18 @@
+# Docker volumes and generated files
+shared/
+
+# Tor data directories
+**/tor-data/
+**/hidden_service/
+
+# System files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.iml
+

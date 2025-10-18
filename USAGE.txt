@@ -1,0 +1,67 @@
+私有 Tor 网络 - 使用说明
+============================
+
+项目已成功创建！所有组件已部署并运行。
+
+当前状态：
+✓ HTTP 测试服务器 - 正常运行 (http://localhost:8888)
+✓ 目录权威服务器 (dirauth) - 正常运行
+✓ 中继节点 (relay1, relay2) - 正常运行  
+✓ Exit 节点 (exit1) - 正常运行
+✓ 隐藏服务节点 (hidden-service) - 正常运行
+✓ 客户端 (client) - 正常运行
+
+注意：Tor 网络需要10-15分钟建立完整共识，请耐心等待。
+
+常用命令：
+----------
+
+1. 查看所有服务状态：
+   docker-compose ps
+
+2. 查看特定服务日志：
+   docker-compose logs [服务名]
+   服务名: dirauth, relay1, relay2, exit1, hidden-service, client, http-server
+
+3. 手动运行测试：
+   docker-compose exec client /bin/bash /test.sh
+
+4. 直接测试HTTP服务器：
+   curl http://localhost:8888
+
+5. 重启所有服务：
+   docker-compose restart
+
+6. 停止网络：
+   docker-compose down
+
+7. 完全清理（包括数据）：
+   docker-compose down -v
+
+架构说明：
+----------
+- dirauth (172.20.0.10) - 目录权威服务器，维护网络共识
+- relay1 (172.20.0.11) - 中继节点1
+- relay2 (172.20.0.12) - 中继节点2  
+- exit1 (172.20.0.13) - Exit节点，允许流量出网络
+- hidden-service (172.20.0.14) - 隐藏服务(.onion)
+- client (172.20.0.15) - Tor客户端，通过SOCKS代理访问
+- http-server (172.20.0.20) - HTTP测试服务器
+
+测试流程：
+----------
+客户端将通过Tor网络测试两种访问方式：
+1. 通过Exit节点访问公开的HTTP服务器
+2. 通过.onion地址访问隐藏服务
+
+网络建立时间：
+------------
+首次启动后，Tor网络需要约10-15分钟来：
+- 各节点生成密钥和证书
+- 发布服务器描述符到dirauth
+- dirauth生成并发布共识
+- 客户端下载共识和微描述符
+- 建立电路并开始路由流量
+
+建议等待15分钟后再运行测试脚本。
+

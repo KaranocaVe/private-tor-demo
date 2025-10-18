@@ -1,0 +1,27 @@
+# Relay Node Configuration
+Nickname relay1
+ContactInfo tor@example.com
+DataDirectory /var/lib/tor
+RunAsDaemon 0
+Log notice stdout
+
+# Network configuration
+ORPort 7002
+DirPort 7003
+Address 172.20.0.11
+
+# Relay configuration
+ExitRelay 0
+ExitPolicy reject *:*
+PublishServerDescriptor 1
+
+# Directory authority
+DirAuthority dirauth orport=7000 no-v2 v3ident=__DIRAUTH_V3IDENT__ 172.20.0.10:7001 __DIRAUTH_FINGERPRINT__
+
+# Speed up private network
+TestingTorNetwork 1
+AssumeReachable 1
+V3AuthVotingInterval 5 minutes
+V3AuthVoteDelay 20 seconds
+V3AuthDistDelay 20 seconds
+

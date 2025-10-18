@@ -1,0 +1,24 @@
+# Hidden Service Configuration
+Nickname hiddenservice
+DataDirectory /var/lib/tor
+RunAsDaemon 0
+Log notice stdout
+
+# Network configuration
+ORPort 7008
+Address 172.20.0.14
+
+# Hidden service configuration
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 127.0.0.1:8080
+
+# Directory authority
+DirAuthority dirauth orport=7000 no-v2 v3ident=__DIRAUTH_V3IDENT__ 172.20.0.10:7001 __DIRAUTH_FINGERPRINT__
+
+# Speed up private network
+TestingTorNetwork 1
+AssumeReachable 1
+V3AuthVotingInterval 5 minutes
+V3AuthVoteDelay 20 seconds
+V3AuthDistDelay 20 seconds
+

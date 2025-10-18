@@ -1,0 +1,25 @@
+# Directory Authority Configuration
+Nickname dirauth
+DataDirectory /var/lib/tor
+RunAsDaemon 0
+Log notice stdout
+
+# Authority configuration
+AuthoritativeDirectory 1
+V3AuthoritativeDirectory 1
+
+# Network configuration
+ORPort 7000
+DirPort 7001
+Address 172.20.0.10
+
+# Exit policy
+ExitPolicy reject *:*
+
+# Speed up private network
+TestingTorNetwork 1
+AssumeReachable 1
+V3AuthVotingInterval 5 minutes
+V3AuthVoteDelay 20 seconds
+V3AuthDistDelay 20 seconds
+
