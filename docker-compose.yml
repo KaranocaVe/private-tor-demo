@@ -12,7 +12,7 @@ services:
       tornet:
         ipv4_address: 172.20.0.10
     volumes:
-      - ./dirauth/torrc:/etc/tor/torrc:ro
+      - ./dirauth/torrc:/etc/tor/torrc.base:ro
       - ./dirauth/start.sh:/start.sh:ro
       - dirauth-data:/var/lib/tor
     command: ["/bin/bash", "/start.sh"]

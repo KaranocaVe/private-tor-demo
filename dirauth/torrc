@@ -1,5 +1,6 @@
 # Directory Authority Configuration
 Nickname dirauth
+ContactInfo tor@example.com
 DataDirectory /var/lib/tor
 RunAsDaemon 0
 Log notice stdout
@@ -22,4 +23,10 @@ AssumeReachable 1
 V3AuthVotingInterval 5 minutes
 V3AuthVoteDelay 20 seconds
 V3AuthDistDelay 20 seconds
+
+# Vote all nodes as Guard and Exit in test network
+TestingDirAuthVoteGuard dirauth,relay1,relay2,exit1
+TestingDirAuthVoteExit exit1,relay1,relay2
+
+# DirAuthority line will be appended by start.sh after key generation
 

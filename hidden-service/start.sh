@@ -7,6 +7,6 @@ python3 -m http.server 8080 &
 # Wait a moment for server to start
 sleep 2
 
-# Start Tor
-exec tor -f /etc/tor/torrc
+# Start Tor as debian-tor user
+exec sudo -u debian-tor tor -f /etc/tor/torrc
 

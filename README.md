@@ -1,339 +1,236 @@
 # Private Tor Network Demo
 
-A complete private Tor network implementation using Docker Compose, demonstrating the core components of the Tor network including directory authority, relay nodes, exit nodes, hidden services, and clients.
+一个使用Docker Compose搭建的私有Tor网络演示项目，包含完整的目录权威服务器、中继节点、出口节点、隐藏服务和客户端。
 
-## Architecture
-
-This demo implements a fully functional private Tor network with the following components:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Private Tor Network                       │
-│                                                              │
-│  ┌──────────────┐                                           │
-│  │   DirAuth    │  ←─── Authority Directory Server         │
-│  │  172.20.0.10 │                                           │
-│  └──────┬───────┘                                           │
-│         │                                                    │
-│    ┌────┴────┬────────────┬────────────┐                   │
-│    │         │            │            │                    │
-│  ┌─▼───┐  ┌─▼────┐    ┌─▼────┐    ┌─▼──────┐             │
-│  │Relay1│  │Relay2│    │Exit1 │    │Hidden  │             │
-│  │.0.11 │  │.0.12 │    │.0.13 │    │Service │             │
-│  └──────┘  └──────┘    └───┬──┘    │.0.14   │             │
-│                            │        └────┬───┘             │
-│                            │             │                  │
-│                        ┌───▼─────┐   ┌──▼──────────┐      │
-│                        │  HTTP   │   │  HTTP       │      │
-│                        │ Server  │   │ (hidden)    │      │
-│  ┌──────────┐          │.0.20    │   │ via .onion │      │
-│  │  Client  │─────────►└─────────┘   └─────────────┘      │
-│  │ .0.15    │                                               │
-│  └──────────┘                                               │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Components
-
-1. **Directory Authority (dirauth)**: 
-   - Maintains the network consensus
-   - Provides directory information to all nodes
-   - Generates authority keys and certificates
-   - IP: 172.20.0.10
-
-2. **Relay Nodes (relay1, relay2)**:
-   - Forward encrypted traffic through the network
-   - Do not allow exit traffic
-   - IPs: 172.20.0.11, 172.20.0.12
-
-3. **Exit Node (exit1)**:
-   - Allows traffic to exit the Tor network
-   - Configured to allow HTTP/HTTPS traffic
-   - IP: 172.20.0.13
-
-4. **Hidden Service Node (hidden-service)**:
-   - Hosts a .onion hidden service
-   - Provides a test web page accessible only via Tor
-   - IP: 172.20.0.14
-
-5. **Client Node (client)**:
-   - Connects to the private Tor network
-   - Runs automated tests
-   - Provides SOCKS proxy on port 9050
-   - IP: 172.20.0.15
-
-6. **HTTP Test Server (http-server)**:
-   - Public HTTP server for testing exit node functionality
-   - Accessible directly or via Tor
-   - IP: 172.20.0.20
-   - Also exposed on host port 8888
-
-## Prerequisites
-
-- Docker (version 20.10 or higher)
-- Docker Compose (version 1.29 or higher)
-- At least 2GB of available RAM
-- Linux, macOS, or Windows with WSL2
-
-## Quick Start
-
-### 1. Clone or navigate to the project directory
+## 快速启动
 
 ```bash
-cd private-tor-demo
-```
-
-### 2. Run the setup script
-
-```bash
-chmod +x setup.sh
+# 一键启动（推荐）
 ./setup.sh
-```
 
-The setup script will:
-- Build all Docker images
-- Start all services
-- Wait for the network to initialize
-- Run automated tests
-- Display results
-
-### 3. View the results
-
-The client will automatically run tests to verify:
-- Access to the HTTP server through the Tor exit node
-- Access to the hidden service via .onion address
-
-## Manual Operations
-
-### Start the network
-
-```bash
+# 或手动启动
 docker-compose up -d
-```
 
-### View logs
-
-View all logs:
-```bash
-docker-compose logs -f
-```
-
-View specific service logs:
-```bash
-docker-compose logs -f client
-docker-compose logs -f dirauth
-docker-compose logs -f hidden-service
-```
-
-### Run tests manually
-
-```bash
+# 等待5-7分钟让网络建立共识，然后运行测试
 docker-compose exec client /bin/bash /test.sh
 ```
 
-### Get hidden service address
+**注意：** 首次启动需要等待约**5-7分钟**让网络完全建立（投票周期为5分钟）。
+
+## 测试结果
+
+项目已成功配置并测试通过：
+
+- ✅ **HTTP服务器访问**：客户端通过Tor出口节点成功访问HTTP服务器
+- ✅ **隐藏服务访问**：客户端通过Tor成功访问.onion隐藏服务
+
+## 网络架构
+
+```
+┌─────────────┐
+│  DirAuth    │ 172.20.0.10  目录权威服务器
+│  (Authority)│
+└─────────────┘
+       │
+   ┌───┴───┬───────┬───────┐
+   │       │       │       │
+┌──▼──┐ ┌──▼──┐ ┌──▼──┐ ┌──▼────────┐
+│Relay│ │Relay│ │Exit │ │Hidden     │
+│  1  │ │  2  │ │  1  │ │Service    │
+└──┬──┘ └──┬──┘ └──┬──┘ └────┬──────┘
+   │       │       │         │
+   └───┬───┴───────┴─────┬───┘
+       │                 │
+   ┌───▼───┐         ┌───▼───────┐
+   │Client │         │HTTP Server│
+   │       │         │(Test)     │
+   └───────┘         └───────────┘
+```
+
+### 组件说明
+
+| 服务 | IP | 端口 | 说明 |
+|------|---------|------|------|
+| dirauth | 172.20.0.10 | 7000(OR), 7001(Dir) | 目录权威服务器 |
+| relay1 | 172.20.0.11 | 7002(OR), 7003(Dir) | 中继节点1 |
+| relay2 | 172.20.0.12 | 7004(OR), 7005(Dir) | 中继节点2 |
+| exit1 | 172.20.0.13 | 7006(OR), 7007(Dir) | 出口节点 |
+| hidden-service | 172.20.0.14 | 7008(OR) | 隐藏服务(.onion) |
+| client | 172.20.0.15 | 9050(SOCKS) | Tor客户端 |
+| http-server | 172.20.0.16 | 80, 8888 | HTTP测试服务器 |
+
+## 使用说明
+
+### 运行测试
 
 ```bash
+# 完整测试（HTTP + 隐藏服务）
+docker-compose exec client /bin/bash /test.sh
+
+# 查看隐藏服务地址
 docker-compose exec hidden-service cat /var/lib/tor/hidden_service/hostname
-```
 
-### Access client shell
-
-```bash
-docker-compose exec client /bin/bash
-```
-
-Inside the client container, you can use curl with Tor:
-```bash
-# Access public HTTP server via Tor
-curl -x socks5h://127.0.0.1:9050 http://http-server/
-
-# Access hidden service (replace with actual .onion address)
-ONION_ADDR=$(cat /shared/hidden_service/hostname)
-curl -x socks5h://127.0.0.1:9050 "http://$ONION_ADDR/"
-```
-
-### Stop the network
-
-```bash
-docker-compose down
-```
-
-### Clean up (including data)
-
-```bash
-docker-compose down -v
-```
-
-## Configuration Files
-
-All Tor configuration files are stored locally and copied into containers:
-
-- `dirauth/torrc` - Directory authority configuration
-- `relay1/torrc` - First relay node configuration
-- `relay2/torrc` - Second relay node configuration
-- `exit/torrc` - Exit node configuration
-- `hidden-service/torrc` - Hidden service configuration
-- `client/torrc` - Client configuration
-
-### Key Configuration Options
-
-- **TestingTorNetwork**: Speeds up consensus generation for testing
-- **V3AuthVotingInterval**: Set to 5 minutes for faster network convergence
-- **ExitPolicy**: Configured to allow HTTP/HTTPS traffic only
-- **HiddenServiceDir**: Directory for hidden service keys and hostname
-
-## Testing
-
-### Automated Tests
-
-The client node runs two automated tests:
-
-1. **Exit Node Test**: Accesses the public HTTP server through Tor
-2. **Hidden Service Test**: Accesses the .onion hidden service through Tor
-
-### Manual Testing
-
-You can also test manually:
-
-```bash
-# Access HTTP server directly (from host)
+# 直接访问HTTP服务器（不通过Tor）
 curl http://localhost:8888
-
-# Access via Tor (from client container)
-docker-compose exec client curl -x socks5h://127.0.0.1:9050 http://http-server/
-
-# Get hidden service address
-ONION=$(docker-compose exec hidden-service cat /var/lib/tor/hidden_service/hostname | tr -d '\r')
-
-# Access hidden service via Tor
-docker-compose exec client curl -x socks5h://127.0.0.1:9050 "http://$ONION/"
 ```
 
-## Troubleshooting
+### 查看日志
 
-### Network takes too long to converge
-
-The private Tor network needs time to build consensus. Wait 60-90 seconds after starting before running tests.
-
-### Client cannot connect
-
-Check that all services are running:
 ```bash
-docker-compose ps
-```
+# 所有服务
+docker-compose logs
 
-Check directory authority logs:
-```bash
+# 特定服务
 docker-compose logs dirauth
+docker-compose logs client
+
+# 实时跟踪
+docker-compose logs -f client
 ```
 
-### Hidden service not accessible
+### 停止网络
 
-Check if the hidden service has generated its hostname:
 ```bash
-docker-compose exec hidden-service cat /var/lib/tor/hidden_service/hostname
-```
+# 停止但保留数据
+docker-compose down
 
-If the file doesn't exist, wait a bit longer or check logs:
-```bash
-docker-compose logs hidden-service
-```
-
-### Reset everything
-
-Stop and remove all containers and volumes:
-```bash
+# 停止并清除所有数据
 docker-compose down -v
-rm -rf shared/
 ```
 
-Then run `./setup.sh` again.
-
-## Network Details
-
-### IP Addressing
-
-- Network: 172.20.0.0/16
-- Directory Authority: 172.20.0.10
-- Relay 1: 172.20.0.11
-- Relay 2: 172.20.0.12
-- Exit Node: 172.20.0.13
-- Hidden Service: 172.20.0.14
-- Client: 172.20.0.15
-- HTTP Server: 172.20.0.20
-
-### Ports
-
-- DirAuth: 7000 (OR), 7001 (Dir)
-- Relay 1: 7002 (OR), 7003 (Dir)
-- Relay 2: 7004 (OR), 7005 (Dir)
-- Exit: 7006 (OR), 7007 (Dir)
-- Hidden Service: 7008 (OR), 8080 (HTTP internal)
-- Client: 9050 (SOCKS)
-- HTTP Server: 80 (internal), 8888 (host)
-
-## Security Notes
-
-⚠️ **This is a demo/testing environment only!**
-
-- All components run in TestingTorNetwork mode
-- Keys are generated automatically without proper security
-- The network is not anonymous (all traffic visible within Docker)
-- Exit policy is permissive
-- Not suitable for production use
-
-## Learning Resources
-
-### Tor Protocol
-
-This demo implements the core Tor protocol:
-
-1. **Directory Authority**: Maintains network consensus
-2. **Circuit Building**: Client builds 3-hop circuits (Entry → Middle → Exit)
-3. **Onion Routing**: Each hop only knows previous and next hop
-4. **Hidden Services**: .onion addresses accessible only via Tor
-
-### File Structure
+## 项目结构
 
 ```
 .
-├── Dockerfile                 # Base Tor image
-├── docker-compose.yml         # Service orchestration
-├── setup.sh                   # Setup script
-├── README.md                  # This file
+├── docker-compose.yml      # 服务编排配置
+├── Dockerfile             # 统一的Tor镜像
+├── setup.sh               # 一键启动脚本
 ├── dirauth/
-│   ├── torrc                  # Authority config
-│   └── start.sh               # Key generation script
+│   └── start.sh          # 目录权威启动脚本（包含完整配置）
 ├── relay1/
-│   └── torrc                  # Relay config
+│   └── torrc             # 中继节点1配置模板
 ├── relay2/
-│   └── torrc                  # Relay config
+│   └── torrc             # 中继节点2配置模板
 ├── exit/
-│   └── torrc                  # Exit config
+│   └── torrc             # 出口节点配置模板
 ├── hidden-service/
-│   ├── torrc                  # Hidden service config
-│   ├── start.sh               # Service startup
-│   └── index.html             # Web page
+│   ├── torrc             # 隐藏服务配置模板
+│   ├── start.sh          # 隐藏服务启动脚本
+│   └── index.html        # 隐藏服务网页
 ├── client/
-│   ├── torrc                  # Client config
-│   └── test.sh                # Test script
+│   ├── torrc             # 客户端配置模板
+│   └── test.sh           # 测试脚本
 └── http-server/
-    ├── Dockerfile             # HTTP server image
-    └── index.html             # Test page
+    └── index.html        # HTTP服务器网页
 ```
+
+## 技术细节
+
+### Tor配置
+
+- **Tor版本**: 0.4.5.16 (Debian Bullseye)
+- **网络模式**: TestingTorNetwork（仅用于测试，不连接公共网络）
+- **共识算法**: v3 microdesc
+- **投票周期**: 5分钟 (V3AuthVotingInterval)
+- **投票延迟**: 20秒 (V3AuthVoteDelay)
+- **分发延迟**: 20秒 (V3AuthDistDelay)
+
+### 关键特性
+
+1. **自动密钥生成**: 目录权威服务器自动生成身份密钥和签名密钥
+2. **动态配置注入**: 各节点启动时自动获取DirAuth的指纹和V3身份
+3. **Guard/Exit标志**: 所有节点自动获得Guard标志，exit1获得Exit标志
+4. **隐藏服务**: 自动生成.onion地址并提供HTTP服务
+5. **权限管理**: 所有Tor进程以debian-tor用户运行
+
+### 为什么需要等待5-7分钟？
+
+1. **密钥生成** (~10秒): DirAuth生成身份和签名密钥
+2. **节点启动** (~30秒): 所有节点启动并连接到网络
+3. **描述符发布** (~1分钟): 节点向DirAuth发布自己的描述符
+4. **首次投票** (~5分钟): DirAuth等待到下一个投票周期
+5. **共识发布** (~20秒): DirAuth计算并发布共识
+6. **客户端引导** (~1分钟): 客户端下载共识和微描述符
+
+## 故障排除
+
+### 测试失败
+
+```bash
+# 1. 检查所有容器状态
+docker-compose ps
+
+# 2. 检查客户端引导进度
+docker-compose logs client | grep "Bootstrapped"
+
+# 3. 检查共识中的节点数量
+docker-compose exec dirauth cat /var/lib/tor/cached-microdesc-consensus | grep "^r " | wc -l
+# 应该显示 4（dirauth, relay1, relay2, exit1）
+
+# 4. 重启特定服务
+docker-compose restart client
+
+# 5. 完全重启网络
+docker-compose down -v && docker-compose up -d
+```
+
+### 隐藏服务地址未生成
+
+```bash
+# 检查隐藏服务日志
+docker-compose logs hidden-service
+
+# 检查隐藏服务目录
+docker-compose exec hidden-service ls -la /var/lib/tor/hidden_service/
+
+# 重启隐藏服务
+docker-compose restart hidden-service
+```
+
+### 客户端无法连接
+
+- 确保等待至少7分钟
+- 检查客户端是否到达100% Bootstrapped
+- 检查共识中是否有Exit标志的节点
+
+## 配置说明
+
+### 修改投票周期（加快网络建立）
+
+编辑 `dirauth/start.sh`，将：
+```bash
+V3AuthVotingInterval 5 minutes
+```
+改为：
+```bash
+V3AuthVotingInterval 1 minutes
+```
+
+注意：更短的投票周期会增加网络负载。
+
+### 添加更多节点
+
+1. 复制现有relay配置
+2. 修改昵称和IP地址
+3. 在docker-compose.yml中添加服务
+4. 在dirauth/start.sh的TestingDirAuthVoteGuard中添加节点昵称
+
+## 安全警告
+
+⚠️ **本项目仅用于测试和学习目的**
+
+- 使用`TestingTorNetwork`模式，不连接公共Tor网络
+- 所有配置都针对测试环境优化，不适合生产环境
+- 私有网络的匿名性远低于公共Tor网络
+- 不要用于任何需要真实匿名保护的场景
+
+## 参考资料
+
+- [Tor Project](https://www.torproject.org/)
+- [Tor Manual](https://2019.www.torproject.org/docs/tor-manual.html.en)
+- [Tor Directory Protocol](https://spec.torproject.org/dir-spec)
+- [Setting up a private Tor network](https://ritter.vg/blog-setting_up_a_tor_hidden_service.html)
 
 ## License
 
-This project is provided as-is for educational purposes.
-
-## Contributing
-
-Feel free to submit issues or pull requests to improve this demo.
-
-## Acknowledgments
-
-- The Tor Project for the Tor software
-- Docker for containerization technology
-
+本项目仅供学习和研究使用。Tor是自由软件，采用3-clause BSD license。
