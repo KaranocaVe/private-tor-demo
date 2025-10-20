@@ -6,6 +6,13 @@ echo "Starting Directory Authority setup..."
 # Create necessary directories
 mkdir -p /var/lib/tor/keys
 
+# Clean old consensus and votes to ensure fresh start
+# Keep keys but remove cached network state
+rm -f /var/lib/tor/cached-*
+rm -f /var/lib/tor/v3-status-votes
+rm -f /var/lib/tor/my-consensus-*
+echo "Cleaned old consensus and vote data"
+
 # Generate authority keys if they don't exist
 if [ ! -f /var/lib/tor/keys/authority_certificate ]; then
     echo "Generating directory authority keys..."

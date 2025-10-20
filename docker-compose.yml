@@ -40,7 +40,8 @@ services:
       dirauth:
         condition: service_healthy
     command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor && 
+      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
+      rm -f /var/lib/tor/cached-* /var/lib/tor/my-consensus-* &&
       sleep 5 &&
       FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
       V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
@@ -66,7 +67,8 @@ services:
       dirauth:
         condition: service_healthy
     command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor && 
+      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
+      rm -f /var/lib/tor/cached-* /var/lib/tor/my-consensus-* &&
       sleep 5 &&
       FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
       V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
@@ -92,7 +94,8 @@ services:
       dirauth:
         condition: service_healthy
     command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor && 
+      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
+      rm -f /var/lib/tor/cached-* /var/lib/tor/my-consensus-* &&
       sleep 5 &&
       FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
       V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
@@ -121,7 +124,8 @@ services:
       dirauth:
         condition: service_healthy
     command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor && 
+      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
+      rm -f /var/lib/tor/cached-* /var/lib/tor/my-consensus-* &&
       sleep 5 &&
       mkdir -p /shared/hidden_service &&
       FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
@@ -171,7 +175,8 @@ services:
       - hidden-service
       - http-server
     command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor && 
+      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
+      rm -f /var/lib/tor/cached-* /var/lib/tor/my-consensus-* &&
       sleep 10 &&
       FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
       V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
