@@ -36,3 +36,9 @@ V3AuthVotingInterval 2 minutes
 V3AuthVoteDelay 20 seconds
 V3AuthDistDelay 20 seconds
 
+# Force regular descriptor republishing
+TestingV3AuthInitialVotingInterval 2 minutes
+TestingV3AuthInitialVoteDelay 20 seconds
+TestingV3AuthInitialDistDelay 20 seconds
+RefuseUnknownExits 0
+

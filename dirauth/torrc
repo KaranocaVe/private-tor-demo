@@ -24,10 +24,17 @@ AssumeReachable 1
 V3AuthVotingInterval 2 minutes
 V3AuthVoteDelay 20 seconds
 V3AuthDistDelay 20 seconds
+TestingV3AuthInitialVotingInterval 2 minutes
+TestingV3AuthInitialVoteDelay 20 seconds
+TestingV3AuthInitialDistDelay 20 seconds
 
 # Vote all nodes as Guard and Exit in test network
 TestingDirAuthVoteGuard dirauth,relay1,relay2,exit1
 TestingDirAuthVoteExit exit1,relay1,relay2
+
+# Accept all exits and reduce descriptor lifetime
+RefuseUnknownExits 0
+TestingAuthDirTimeToLearnReachability 0 minutes
 
 # DirAuthority line will be appended by start.sh after key generation
 
