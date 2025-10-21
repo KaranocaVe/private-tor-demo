@@ -28,9 +28,10 @@ TestingV3AuthInitialVotingInterval 2 minutes
 TestingV3AuthInitialVoteDelay 20 seconds
 TestingV3AuthInitialDistDelay 20 seconds
 
-# Vote all nodes as Guard and Exit in test network
+# Vote flags in test network
 TestingDirAuthVoteGuard dirauth,relay1,relay2,exit1
-TestingDirAuthVoteExit exit1,relay1,relay2
+TestingDirAuthVoteExit exit1
+TestingDirAuthVoteHSDir dirauth,relay1,relay2,exit1
 
 # Accept all exits and reduce descriptor lifetime
 RefuseUnknownExits 0

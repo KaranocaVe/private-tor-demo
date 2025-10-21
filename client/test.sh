@@ -37,23 +37,44 @@ echo "==================================="
 echo "Test 2: Accessing Hidden Service"
 echo "==================================="
 
-# Get the hidden service address
-if [ -f /shared/hidden_service/hostname ]; then
+# Get the hidden service address with retries
+RETRIES=12
+SLEEP_SECS=5
+for i in $(seq 1 $RETRIES); do
+  if [ -f /shared/hidden_service/hostname ]; then
     ONION_ADDR=$(cat /shared/hidden_service/hostname)
-    echo "Hidden service address: $ONION_ADDR"
-    echo ""
-    
-    if curl -x socks5h://127.0.0.1:9050 \
-        --connect-timeout 30 \
-        --max-time 60 \
-        -s "http://$ONION_ADDR/" | grep -q "Hidden Service"; then
-        echo "✓ SUCCESS: Accessed hidden service through Tor"
-    else
-        echo "✗ FAILED: Could not access hidden service"
-    fi
+    break
+  fi
+  echo "Waiting for hidden service address ($i/$RETRIES)..."
+  sleep $SLEEP_SECS
+done
+
+if [ -z "$ONION_ADDR" ]; then
+  echo "✗ FAILED: Hidden service address not found"
+  exit 1
+fi
+
+echo "Hidden service address: $ONION_ADDR"
+echo ""
+
+# Try multiple times to access HS
+HS_OK=0
+for i in 1 2 3; do
+  if curl -x socks5h://127.0.0.1:9050 \
+      --connect-timeout 30 \
+      --max-time 60 \
+      -s "http://$ONION_ADDR/" | grep -q "Hidden Service"; then
+    HS_OK=1
+    break
+  fi
+  echo "Retrying hidden service access ($i/3)..."
+  sleep 5
+done
+
+if [ "$HS_OK" = "1" ]; then
+  echo "✓ SUCCESS: Accessed hidden service through Tor"
 else
-    echo "✗ FAILED: Hidden service address not found"
-    echo "Please wait for the hidden service to generate its address"
+  echo "✗ FAILED: Could not access hidden service"
 fi
 
 echo ""

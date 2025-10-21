@@ -19,3 +19,4 @@ AssumeReachable 1
 V3AuthVotingInterval 2 minutes
 V3AuthVoteDelay 20 seconds
 V3AuthDistDelay 20 seconds
+UseMicrodescriptors 0
