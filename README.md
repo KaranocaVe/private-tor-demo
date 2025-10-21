@@ -131,7 +131,7 @@ docker-compose down -v
 - **Tor版本**: 0.4.5.16 (Debian Bullseye)
 - **网络模式**: TestingTorNetwork（仅用于测试，不连接公共网络）
 - **共识算法**: v3 microdesc
-- **投票周期**: 5分钟 (V3AuthVotingInterval)
+- **投票周期**: 2分钟 (V3AuthVotingInterval)
 - **投票延迟**: 20秒 (V3AuthVoteDelay)
 - **分发延迟**: 20秒 (V3AuthDistDelay)
 

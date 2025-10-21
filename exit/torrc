@@ -11,6 +11,7 @@ DirPort 7007
 Address 172.20.0.13
 
 # Exit configuration
+SocksPort 0
 ExitRelay 1
 ExitPolicy accept *:80
 ExitPolicy accept *:443
@@ -23,7 +24,7 @@ DirAuthority dirauth orport=7000 no-v2 v3ident=__DIRAUTH_V3IDENT__ 172.20.0.10:7
 # Speed up private network
 TestingTorNetwork 1
 AssumeReachable 1
-V3AuthVotingInterval 5 minutes
+V3AuthVotingInterval 2 minutes
 V3AuthVoteDelay 20 seconds
 V3AuthDistDelay 20 seconds
 
