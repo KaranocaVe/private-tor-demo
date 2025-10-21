@@ -1,18 +1,22 @@
-# Docker volumes and generated files
+# Docker volumes and data
 shared/
 
-# Tor data directories
-**/tor-data/
-**/hidden_service/
+# Tor generated files
+*.pid
 
 # System files
 .DS_Store
-*.swp
-*.swo
-*~
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
-*.iml
+*.swp
+*.swo
+*~
 
+# Logs
+*.log
+
+# Temporary files
+*.tmp

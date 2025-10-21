@@ -13,6 +13,13 @@ SocksPort 0
 HiddenServiceDir /var/lib/tor/hidden_service/
 HiddenServicePort 80 127.0.0.1:8080
 
+# Disable client functionality (except hidden service)
+ClientOnly 0
+FetchDirInfoEarly 0
+FetchDirInfoExtraEarly 0
+FetchUselessDescriptors 0
+FetchServerDescriptors 1
+
 # Directory authority
 DirAuthority dirauth orport=7000 no-v2 v3ident=__DIRAUTH_V3IDENT__ 172.20.0.10:7001 __DIRAUTH_FINGERPRINT__
 

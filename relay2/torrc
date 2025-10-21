@@ -16,6 +16,14 @@ ExitRelay 0
 ExitPolicy reject *:*
 PublishServerDescriptor 1
 
+# Disable client functionality
+ClientOnly 0
+FetchDirInfoEarly 0
+FetchDirInfoExtraEarly 0
+FetchUselessDescriptors 0
+FetchServerDescriptors 1
+FetchHidServDescriptors 0
+
 # Directory authority
 DirAuthority dirauth orport=7000 no-v2 v3ident=__DIRAUTH_V3IDENT__ 172.20.0.10:7001 __DIRAUTH_FINGERPRINT__
 

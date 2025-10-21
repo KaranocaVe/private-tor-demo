@@ -34,19 +34,13 @@ services:
         ipv4_address: 172.20.0.11
     volumes:
       - ./relay1/torrc:/etc/tor/torrc.template:ro
+      - ./scripts/relay-startup.sh:/startup.sh:ro
       - relay1-data:/var/lib/tor
       - dirauth-data:/var/lib/tor-dirauth:ro
     depends_on:
       dirauth:
         condition: service_healthy
-    command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
-      sleep 5 &&
-      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
-      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
-      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
-      sudo -u debian-tor tor -f /etc/tor/torrc
-      "
+    command: ["/bin/bash", "-c", "sleep 5 && /bin/bash /startup.sh"]
 
   # Relay Node 2
   relay2:
@@ -60,19 +54,13 @@ services:
         ipv4_address: 172.20.0.12
     volumes:
       - ./relay2/torrc:/etc/tor/torrc.template:ro
+      - ./scripts/relay-startup.sh:/startup.sh:ro
       - relay2-data:/var/lib/tor
       - dirauth-data:/var/lib/tor-dirauth:ro
     depends_on:
       dirauth:
         condition: service_healthy
-    command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
-      sleep 5 &&
-      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
-      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
-      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
-      sudo -u debian-tor tor -f /etc/tor/torrc
-      "
+    command: ["/bin/bash", "-c", "sleep 5 && /bin/bash /startup.sh"]
 
   # Exit Node
   exit1:
@@ -86,19 +74,13 @@ services:
         ipv4_address: 172.20.0.13
     volumes:
       - ./exit/torrc:/etc/tor/torrc.template:ro
+      - ./scripts/relay-startup.sh:/startup.sh:ro
       - exit-data:/var/lib/tor
       - dirauth-data:/var/lib/tor-dirauth:ro
     depends_on:
       dirauth:
         condition: service_healthy
-    command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
-      sleep 5 &&
-      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
-      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
-      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
-      sudo -u debian-tor tor -f /etc/tor/torrc
-      "
+    command: ["/bin/bash", "-c", "sleep 5 && /bin/bash /startup.sh"]
 
   # Hidden Service Node
   hidden-service:
@@ -113,6 +95,7 @@ services:
     volumes:
       - ./hidden-service/torrc:/etc/tor/torrc.template:ro
       - ./hidden-service/start.sh:/start.sh:ro
+      - ./scripts/hidden-service-startup.sh:/hidden-service-startup.sh:ro
       - ./hidden-service/index.html:/var/www/index.html:ro
       - hidden-service-data:/var/lib/tor
       - dirauth-data:/var/lib/tor-dirauth:ro
@@ -120,19 +103,7 @@ services:
     depends_on:
       dirauth:
         condition: service_healthy
-    command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
-      sleep 5 &&
-      mkdir -p /shared/hidden_service &&
-      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
-      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
-      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
-      /bin/bash /start.sh &
-      sleep 20 &&
-      while [ ! -f /var/lib/tor/hidden_service/hostname ]; do sleep 2; done &&
-      cp /var/lib/tor/hidden_service/hostname /shared/hidden_service/hostname &&
-      wait
-      "
+    command: ["/bin/bash", "-c", "sleep 5 && /bin/bash /hidden-service-startup.sh"]
 
   # HTTP Test Server
   http-server:
@@ -160,6 +131,7 @@ services:
     volumes:
       - ./client/torrc:/etc/tor/torrc.template:ro
       - ./client/test.sh:/test.sh:ro
+      - ./scripts/client-startup.sh:/client-startup.sh:ro
       - client-data:/var/lib/tor
       - dirauth-data:/var/lib/tor-dirauth:ro
       - shared-data:/shared:ro
@@ -170,17 +142,7 @@ services:
       - exit1
       - hidden-service
       - http-server
-    command: >
-      /bin/bash -c "chown -R debian-tor:debian-tor /var/lib/tor &&
-      sleep 10 &&
-      FINGERPRINT=$$(cat /var/lib/tor-dirauth/fingerprint | awk '{print $$2}') &&
-      V3IDENT=$$(cat /var/lib/tor-dirauth/keys/authority_certificate | grep fingerprint | head -1 | awk '{print $$2}') &&
-      sed \"s/__DIRAUTH_FINGERPRINT__/$$FINGERPRINT/g; s/__DIRAUTH_V3IDENT__/$$V3IDENT/g\" /etc/tor/torrc.template > /etc/tor/torrc &&
-      sudo -u debian-tor tor -f /etc/tor/torrc &
-      sleep 30 &&
-      /bin/bash /test.sh &&
-      tail -f /dev/null
-      "
+    command: ["/bin/bash", "-c", "sleep 10 && /bin/bash /client-startup.sh"]
     stdin_open: true
     tty: true
 
